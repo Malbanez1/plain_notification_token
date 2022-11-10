@@ -42,6 +42,10 @@
   } else if ([@"requestPermission" isEqualToString:call.method]) {
       [self requestPermissionWithSettings:[call arguments]];
       result(nil);
+  } else if ([@"setHandlers" isEqualToString:call.method]) {
+      if (_launchNotification != nil) {
+          [_channel invokeMethod:@"onLaunch" arguments:_launchNotification];
+      }
   } else {
     result(FlutterMethodNotImplemented);
   }
