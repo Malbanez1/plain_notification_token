@@ -3,7 +3,9 @@
 
 @implementation PlainNotificationTokenPlugin {
     NSString *_lastToken;
+    BOOL _resumingFromBackground;
     FlutterMethodChannel *_channel;
+    NSDictionary *_launchNotification;
 }
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
@@ -19,6 +21,7 @@
     
     if (self) {
         _channel = channel;
+        _resumingFromBackground = NO;
         dispatch_async(dispatch_get_main_queue(), ^() {
             [[UIApplication sharedApplication] registerForRemoteNotifications];
         });
@@ -134,6 +137,12 @@
     }
     _lastToken = [ret copy];
     [_channel invokeMethod:@"onToken" arguments:_lastToken];
+}
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    if (launchOptions != nil) {
+        _launchNotification = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+    }
+    return YES;
 }
 - (bool)application:(UIApplication *)application
     didReceiveRemoteNotification:(NSDictionary *)userInfo
