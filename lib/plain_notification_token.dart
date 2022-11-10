@@ -1,16 +1,20 @@
 import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart';
 import 'package:platform/platform.dart';
 
 /// Utility class to get token to send push notification for Flutter.
 ///
 /// This plugin is aiming to compatible with [firebase_messaging](https://pub.dev/packages/firebase_messaging) API.
+typedef NotificationHandler = void Function(Map<String, dynamic>);
 class PlainNotificationToken {
   static PlainNotificationToken? _instance;
   final MethodChannel _channel;
   final Platform _platform;
+  NotificationHandler? _onMessage;
+  NotificationHandler? _onResume;
+  NotificationHandler? _onLaunch;
 
   PlainNotificationToken._(MethodChannel channel, Platform platform)
       : _channel = channel,
@@ -56,6 +60,16 @@ class PlainNotificationToken {
     _channel.invokeMethod("requestPermission", settings.toMap());
   }
 
+  void setHandlers(
+      {required NotificationHandler onLaunch,
+      required NotificationHandler onResume,
+      required NotificationHandler onMessage}) {
+    _onMessage = onMessage;
+    _onResume = onResume;
+    _onLaunch = onLaunch;
+    _channel.invokeMethod("setHandlers");
+  }
+
   Future<dynamic> _handleMethod(MethodCall call) async {
     switch (call.method) {
       case "onToken":
@@ -65,6 +79,15 @@ class PlainNotificationToken {
       case "onIosSettingsRegistered":
         _iosSettingsStreamController.add(IosNotificationSettings._fromMap(
             call.arguments.cast<String, bool>()));
+        return null;
+      case "onMessage":
+        _onMessage?.call(call.arguments.cast<String, dynamic>());
+        return null;
+      case "onResume":
+        _onResume?.call(call.arguments.cast<String, dynamic>());
+        return null;
+      case "onLaunch":
+        _onLaunch?.call(call.arguments.cast<String, dynamic>());
         return null;
     }
   }
@@ -95,3 +118,5 @@ class IosNotificationSettings {
   @override
   String toString() => 'PushNotificationSettings ${toMap()}';
 }
+
+
