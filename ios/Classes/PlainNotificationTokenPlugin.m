@@ -50,6 +50,22 @@
     result(FlutterMethodNotImplemented);
   }
 }
+- (void)didReceiveRemoteNotification:(NSDictionary *)userInfo {
+    if (_resumingFromBackground) {
+        [_channel invokeMethod:@"onResume" arguments:userInfo];
+    } else {
+        [_channel invokeMethod:@"onMessage" arguments:userInfo];
+    }
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    _resumingFromBackground = YES;
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    _resumingFromBackground = NO;
+    application.applicationIconBadgeNumber = 0;
+}
 
 - (NSString *)getToken {
     return _lastToken;
@@ -118,6 +134,13 @@
     }
     _lastToken = [ret copy];
     [_channel invokeMethod:@"onToken" arguments:_lastToken];
+}
+- (bool)application:(UIApplication *)application
+    didReceiveRemoteNotification:(NSDictionary *)userInfo
+          fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
+  [self didReceiveRemoteNotification:userInfo];
+  completionHandler(UIBackgroundFetchResultNoData);
+  return YES;
 }
 
 @end
