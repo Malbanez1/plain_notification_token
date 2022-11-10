@@ -60,14 +60,14 @@ class PlainNotificationToken {
     _channel.invokeMethod("requestPermission", settings.toMap());
   }
 
-  void setHandlers(
+  void setNotification(
       {required NotificationHandler onLaunch,
       required NotificationHandler onResume,
       required NotificationHandler onMessage}) {
     _onMessage = onMessage;
     _onResume = onResume;
     _onLaunch = onLaunch;
-    _channel.invokeMethod("setHandlers");
+    _channel.invokeMethod("setNotification");
   }
 
   Future<dynamic> _handleMethod(MethodCall call) async {

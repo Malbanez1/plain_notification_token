@@ -40,18 +40,16 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"getPlatformVersion" isEqualToString:call.method]) {
-    result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
-  } else if ([@"setHandlers" isEqualToString:call.method]) {
-      if (_launchNotification != nil) {
-          [_channel invokeMethod:@"onLaunch" arguments:_launchNotification];
-      }
-  }if ([@"getToken" isEqualToString:call.method]) {
+  if ([@"getToken" isEqualToString:call.method]) {
     result([self getToken]);
   } else if ([@"requestPermission" isEqualToString:call.method]) {
       [self requestPermissionWithSettings:[call arguments]];
       result(nil);
-  }else {
+  } else if ([@"setNotification" isEqualToString:call.method]) {
+      if (_launchNotification != nil) {
+          [_channel invokeMethod:@"onLaunch" arguments:_launchNotification];
+      }
+  } else {
     result(FlutterMethodNotImplemented);
   }
 }
@@ -140,12 +138,7 @@
     _lastToken = [ret copy];
     [_channel invokeMethod:@"onToken" arguments:_lastToken];
 }
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    if (launchOptions != nil) {
-        _launchNotification = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
-    }
-    return YES;
-}
+
 - (bool)application:(UIApplication *)application
     didReceiveRemoteNotification:(NSDictionary *)userInfo
           fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
